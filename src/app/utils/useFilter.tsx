@@ -5,7 +5,7 @@ const useFilters = () => {
     const [sortOrder, setSortOrder] = useState<string>('');
 
     const handleSort = (sortByField: string, sortOrderType: string) => {
-        console.log('sorting =>', sortByField, sortOrderType);
+
         setSortBy(sortByField);
         setSortOrder(sortOrderType);
     };

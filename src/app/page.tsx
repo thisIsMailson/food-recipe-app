@@ -16,6 +16,7 @@ type Recipe = {
       };
     };
     digest: {
+      label: string;
       total: number;
     }[];
     totalTime: number;
@@ -47,28 +48,37 @@ export default function Home() {
       .then((res) => res.json())
       .then((data) => {
         setRecipes(data.hits);
-        // Sort recipes based on sortBy and sortOrder
-        let sortedRecipes = [...data.hits];
-        if (sortBy && sortOrder) {
-          sortedRecipes.sort((a, b) => {
-            // Implement sorting logic based on sortBy and sortOrder
-            if (sortOrder === 'asc') {
-              return a[sortBy] - b[sortBy];
-            } else if (sortOrder === 'desc') {
-              return b[sortBy] - a[sortBy];
-            }
-            return 0;
-          });
-        }
-
-        // Update recipes state with sorted recipes
-        setRecipes(sortedRecipes);
       })
       .catch((error) => {
         console.error('Error fetching recipes:', error);
       });
-  }, [query]);
+  }, [query, sortBy, sortOrder]);
+  const sort = useCallback(() => {
+    let sortedRecipes = recipes;
+    console.log('sortr =>', sortedRecipes);
+    if (sortBy && sortOrder) {
+      console.log('sort =>', sortOrder, sortBy);
 
+      sortedRecipes.sort((a, b) => {
+        const compareFunction = sortOrder === 'asc' ? 1 : -1;
+        if (sortBy === 'protein') {
+          return compareFunction * Math.round((b.recipe.digest?.find(item => item.label === 'Protein')?.total || 0)) - Math.round((a.recipe.digest?.find(item => item.label === 'Protein')?.total || 0));
+        } else if (sortBy === 'fat') {
+          return compareFunction * Math.round((b.recipe.digest?.find(item => item.label === 'Fat')?.total || 0)) - Math.round((a.recipe.digest?.find(item => item.label === 'Fat')?.total || 0));
+        } else if (sortBy === 'carbs') {
+          return compareFunction * Math.round((b.recipe.digest?.find(item => item.label === 'Carbs')?.total || 0)) - Math.round((a.recipe.digest?.find(item => item.label === 'Carbs')?.total || 0));
+        } else if (sortBy === 'totalTime') {
+          return compareFunction * Math.round(b.recipe.totalTime - a.recipe.totalTime);
+        } else {
+          // Default to sorting by totalTime if no valid sortBy is specified
+          return 0;
+        }
+      });
+
+    }
+    setRecipes(sortedRecipes)
+  }, [sortBy, sortOrder, recipes])
+  useEffect(() => { sort() }, [sort])
   useEffect(() => {
     getRecipes();
   }, [getRecipes]);
@@ -93,7 +103,7 @@ export default function Home() {
         <div className="container">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {recipes.map((recipe) => (
-              recipe.recipe.totalTime > 0 && < Card key={recipe.recipe.uri} recipe={recipe} />
+              recipe.recipe.totalTime > 0 && <Card key={recipe.recipe.uri} recipe={recipe} />
             ))}
           </div>
         </div>
